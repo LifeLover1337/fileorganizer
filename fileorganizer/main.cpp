@@ -39,6 +39,7 @@ private:
 	std::unordered_map<std::string, std::string> extensionMap;
 	// правила сортировки
 	void initializeExtensionMap() {
+
 		// Изображения
 		extensionMap[".jpg"] = "Изображения";
 		extensionMap[".jpeg"] = "Изображения";
@@ -49,4 +50,72 @@ private:
 		extensionMap[".webp"] = "Изображения";
 		extensionMap[".svg"] = "Изображения";
 		extensionMap[".ico"] = "Изображения";
+
+		// видео 
+		extensionMap[".mp4"] = "Видео";
+		exteextensionMap[".avi"] = "Видео";
+		extensionMap[".mkv"] = "Видео";
+		extensionMap[".mov"] = "Видео";
+		extensionMap[".wmv"] = "Видео";
+		extensionMap[".flv"] = "Видео";
+		extensionMap[".webm"] = "Видео";
+		extensionMap[".mpeg"] = "Видео";
+		extensionMap[".mpg"] = "Видео";
+
+		// музыка
+		extensionMap[".mp3"] = "Музыка";
+		extensionMap[".wav"] = "Музыка";
+		extensionMap[".flac"] = "Музыка";
+		extensionMap[".ogg"] = "Музыка";
+		extensionMap[".m4a"] = "Музыка";
+		extensionMap[".aac"] = "Музыка";
+		extensionMap[".wma"] = "Музыка";
+
+		// документы 
+		extensionMap[".pdf"] = "Документы";
+		extensionMap[".doc"] = "Документы";
+		extensionMap[".docx"] = "Документы";
+		extensionMap[".txt"] = "Документы";
+		extensionMap[".rtf"] = "Документы";
+		extensionMap[".xls"] = "Документы";
+		extensionMap[".xlsx"] = "Документы";
+		extensionMap[".ppt"] = "Документы";
+		extensionMap[".pptx"] = "Документы";
+		extensionMap[".odt"] = "Документы";
+		extensionMap[".ods"] = "Документы";
+		extensionMap[".odp"] = "Документы";
+		extensionMap[".csv"] = "Документы";
+
+		// архивы 
+		extensionMap[".zip"] = "Архивы";
+		extensionMap[".rar"] = "Архивы";
+		extensionMap[".7z"] = "Архивы";
+		extensionMap[".tar"] = "Архивы";
+		extensionMap[".gz"] = "Архивы";
+		extensionMap[".bz2"] = "Архивы";
+		extensionMap[".xz"] = "Архивы";
+	}
+	// этот блок приводит расширение файла к нижнему регистру
+	std::string getExtension(const fs::path& filepath) {
+		std::string ext = filePath.extension().string();
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+		return ext;
+	}
+	// создание папки
+	bool createFolderIfNeeded(const fs::path& basePath, const std::string& folderName) {
+		fs::path folderPath = basePath / utf8_to_path(folderName);
+		if (!fs::exists(folderPath)) {
+			if (fs::create_directory(folderPath)) {
+				std::cout << "Создана папка:" << folderName << std::endl;
+				return true;
+			}
+			else {
+				std::cerr << "Не удалось создать папку:" << folderName << std::endl;
+				return false;
+			}
+		}
+		return true;
+	}
+
+
 
