@@ -116,3 +116,36 @@ private:
 		}
 		return true;
 	}
+	// Генерация уникального имени при конфликте
+	fs::path getUniqueFilename(const fs::path& targetPath) {
+		if (!fs::exists(targetPath)) {
+			return targetPath;
+		}
+		fs::path parent = targetPath.parent_path();
+		std::string stem = targetPath.stem().string();
+		std::string extension = targetPath.extension().string();
+
+		int counter = 1;
+		fs::path newPath;
+		do {
+			std::string newName = stem + " (" + std::to_string(counter) + ")" + extension;
+			newPath = parent / utf8_to_path(newName);
+			counter++;
+		} while (fs::exists(newPath));
+
+		return newPath;
+	}
+public:
+	FileOrganizer() {
+		initializeExtensionMap();
+	}
+	// Добавление пользовательского правила
+	void addRule(const std::string& extension, const std::string& category) {
+		std::string ext = extension;
+		if (ext.empty()) return;
+		if (ext[0] != '.') ext = "." + ext;
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		extensionMap[ext] = category;
+		std::cout << "Добавлено правило:" << ext << " -> " << category << std::endl;
+	}
