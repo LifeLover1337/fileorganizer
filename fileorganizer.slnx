@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="fileorganizer/fileorganizer.vcxproj" />
+  <Project Path="fileorganizer/fileorganizer.vcxproj" Id="fc652895-bb88-425c-9ea3-378ac801630f" />
 </Solution>

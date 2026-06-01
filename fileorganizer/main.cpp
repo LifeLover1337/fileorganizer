@@ -31,7 +31,7 @@ std::string wstring_to_utf8(const std::wstring& wstr) {
 }
 // преобразование std::string utf-8 в std::filesystem::path поддерживает русский 
 fs::path utf8_to_path(const std::string& str) {
-	return fs::path(const std::wstring(str));
+	return fs::path(utf8_to_wstring(str));
 }
 // class- тип данных , который объединяет переменные и функции для работы с ними, private- поле extensionmap доступно только внутри самого класса
 class FileOrganizer {
@@ -53,7 +53,7 @@ private:
 
 		// видео 
 		extensionMap[".mp4"] = "Видео";
-		exteextensionMap[".avi"] = "Видео";
+		extensionMap[".avi"] = "Видео";
 		extensionMap[".mkv"] = "Видео";
 		extensionMap[".mov"] = "Видео";
 		extensionMap[".wmv"] = "Видео";
@@ -97,7 +97,7 @@ private:
 	}
 	// этот блок приводит расширение файла к нижнему регистру
 	std::string getExtension(const fs::path& filepath) {
-		std::string ext = filePath.extension().string();
+		std::string ext = filepath.extension().string();
 		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 		return ext;
 	}
@@ -116,6 +116,3 @@ private:
 		}
 		return true;
 	}
-
-
-
