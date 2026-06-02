@@ -149,3 +149,146 @@ public:
 		extensionMap[ext] = category;
 		std::cout << "Добавлено правило:" << ext << " -> " << category << std::endl;
 	}
+	// удаление правила 
+	void removeRule(const std::string& extension) {
+		std::string ext = extension;
+		if (ext.empty()) return;
+		if (ext[0] != '.') ext = "." + ext;
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		auto it = extensionMap.find(ext);
+		if (it != extensionMap.end()) {
+			extensionMap.erase(it);
+			std::cout << "Удалено правило для:" << ext << std::endl;
+		}
+		else {
+			std::cout << "Правило не найдено:" << ext << std::endl;
+		}
+	}
+	// Показать все правила
+	void showRules() {
+		std::cout << "\n ТЕКУЩИЕ ПРАВИЛА СОРТИРОВКИ:\n";
+		std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+
+		std::set<std::string> categories;
+		for (const auto& [ext, cat] : extensionMap) {
+			categories.insert(cat);
+		}
+
+		for (const auto& cat : categories) {
+			std::cout << "📂" << cat << ":\n    ";
+			for (const auto& [ext, cat2] : extensionMap) {
+				if (cat2 == cat) {
+					std::cout << ext << " ";
+				}
+			}
+			std::cout << "\n";
+		}
+		std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+	}
+	// основная функция сортировки 
+	int organize(const std::string& directoryPath) {
+		// Проверяем существование папки
+		fs::path dirPath = utf8_to_path(directoryPath);
+
+		if (!fs::exists(dirPath)) {
+			std::cerr << "Ошибка: Папка не существует!\n";
+			return 1;
+		}
+
+		if (!fs::is_directory(dirPath)) {
+			std::cerr << "Ошибка: Указанный путь не является папкой!\n";
+			return 1;
+		}
+
+		std::cout << "\nСОРТИРОВКА ПАПКИ:\n";
+		std::cout << "   " << directoryPath << "\n";
+		std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+
+		int filesProcessed = 0;
+		int filesMoved = 0;
+
+		for (const auto& entry : fs::directory_iterator(dirPath)) {
+			// Пропускаем папки
+			if (!fs::is_regular_file(entry.status())) {
+				continue;
+			}
+
+			fs::path filePath = entry.path();
+			std::string fileName = wstring_to_utf8(filePath.filename().wstring());
+			std::string ext = getExtension(filePath);
+
+			filesProcessed++;
+			// определение категории 
+			std::string category = "Разное";
+			auto it = extensionMap.find(ext);
+			if (it != extensionMap.end()) {
+				category = it->second;
+			}
+			// папка для категории 
+			if (!createFolderIfNeeded(dirPath, category)) {
+				continue;
+			}
+			// путь назначения 
+			fs::path targetPath = dirPath / utf8_to_path(category) / filePath.filename();
+			fs::path uniquePath = getUniqueFilename(targetPath);
+			// перемещение файла 
+			try {
+				fs::rename(filePath, uniquePath);
+				if (targetPath != uniquePath) {
+					std::cout << "⚠️" << fileName << " -> " << category << " (переименован)\n";
+				}
+				else {
+					std::cout << "✅" << fileName << " -> " << category << "\n";
+				}
+				filesMoved++;
+			}
+			catch (const fs::filesystem_error& e) {
+				std::cerr << "Ошибка при перемещении " << fileName << ": " << e.what() << "\n";
+			}
+		}
+
+		std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+		std::cout << "СОРТИРОВКА ЗАВЕРШЕНА!\n";
+		std::cout << "   Обработано файлов: " << filesProcessed << "\n";
+		std::cout << "   Перемещено файлов: " << filesMoved << "\n";
+
+		return 0;
+	}
+	// настройка консоли 
+	void setupConsole() {
+
+		// Устанавливаем кодировку UTF-8 для консоли Windows
+		SetConsoleOutputCP(CP_UTF8);
+		SetConsoleCP(CP_UTF8);
+
+		// Включаем поддержку VT-последовательностей (для цветов) на Windows 10+
+		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+		DWORD dwMode = 0;
+		GetConsoleMode(hOut, &dwMode);
+		dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+		SetConsoleMode(hOut, dwMode);
+
+		// Устанавливаем русскую локаль
+		setlocale(LC_ALL, "ru_RU.UTF-8");
+		std::locale::global(std::locale("ru_RU.UTF-8"));
+	}
+	void printBanner() {
+		std::cout << "\n";
+		std::cout << "╔══════════════════════════════════════════════════════════════════╗\n";
+		std::cout << "║                   ФАЙЛОВЫЙ ОРГАНАЙЗЕР v1.0                        ║\n";
+		std::cout << "║                   Автоматическая сортировка файлов                ║\n";
+		std::cout << "╚══════════════════════════════════════════════════════════════════╝\n";
+		std::cout << "\n";
+	}
+	void printHelp() {
+		std::cout << "Команды:\n";
+		std::cout << "  sort [путь]     - отсортировать указанную папку\n";
+		std::cout << "  sort .          - отсортировать текущую папку\n";
+		std::cout << "  rules           - показать все правила сортировки\n";
+		std::cout << "  add .ext папка  - добавить новое правило\n";
+		std::cout << "  remove .ext     - удалить правило\n";
+		std::cout << "  help            - показать эту справку\n";
+		std::cout << "  exit            - выход\n";
+		std::cout << "\n";
+	}
