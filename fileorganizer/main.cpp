@@ -255,6 +255,7 @@ public:
 
 		return 0;
 	}
+};
 	// настройка консоли 
 	void setupConsole() {
 
@@ -276,8 +277,8 @@ public:
 	void printBanner() {
 		std::cout << "\n";
 		std::cout << "╔══════════════════════════════════════════════════════════════════╗\n";
-		std::cout << "║                   ФАЙЛОВЫЙ ОРГАНАЙЗЕР v1.0                        ║\n";
-		std::cout << "║                   Автоматическая сортировка файлов                ║\n";
+		std::cout << "║                   ФАЙЛОВЫЙ ОРГАНАЙЗЕР v1.0                       ║\n";
+		std::cout << "║                                                                  ║\n";
 		std::cout << "╚══════════════════════════════════════════════════════════════════╝\n";
 		std::cout << "\n";
 	}
@@ -291,4 +292,83 @@ public:
 		std::cout << "  help            - показать эту справку\n";
 		std::cout << "  exit            - выход\n";
 		std::cout << "\n";
+	}
+	int main() {
+		setupConsole();
+		printBanner();
+
+		FileOrganizer organizer;
+		std::string command;
+
+		std::cout << "Введите 'help' для списка команд или укажите путь к папке для сортировки.\n\n";
+
+		while (true) {
+			std::cout << "> ";
+			std::getline(std::cin, command);
+
+			if (command.empty()) continue;
+
+			// Убираем возможные кавычки в начале и конце
+			if (command.front() == '"' && command.back() == '"') {
+				command = command.substr(1, command.length() - 2);
+			}
+
+			// Выход
+			if (command == "exit" || command == "quit" || command == "выход") {
+				std::cout << "До свидания!\n";
+				break;
+			}
+
+			// Справка
+			if (command == "help" || command == "?") {
+				printHelp();
+				continue;
+			}
+
+			// Показать правила
+			if (command == "rules") {
+				organizer.showRules();
+				continue;
+			}
+
+			// Добавить правило: add .ext папка
+			if (command.substr(0, 4) == "add ") {
+				std::string rest = command.substr(4);
+				size_t spacePos = rest.find(' ');
+				if (spacePos != std::string::npos) {
+					std::string ext = rest.substr(0, spacePos);
+					std::string category = rest.substr(spacePos + 1);
+					organizer.addRule(ext, category);
+				}
+				else {
+					std::cout << "  ❌ Использование: add .mp3 Музыка\n";
+				}
+				continue;
+			}
+
+			// Удалить правило: remove .ext
+			if (command.substr(0, 7) == "remove ") {
+				std::string ext = command.substr(7);
+				organizer.removeRule(ext);
+				continue;
+			}
+
+			// Сортировка: sort путь или просто путь
+			std::string path;
+			if (command.substr(0, 5) == "sort ") {
+				path = command.substr(5);
+			}
+			else {
+				path = command;
+			}
+
+			// Обрабатываем "." как текущую папку
+			if (path == ".") {
+				path = fs::current_path().string();
+			}
+
+			organizer.organize(path);
+			std::cout << "\n";
+		}
+		return 0;
 	}
